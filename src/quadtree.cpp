@@ -91,11 +91,12 @@ QuadTreeLeaf *QuadTree::top()
 
 QuadTreeLeaf::QuadTreeLeaf()
 {
-    parent = -1;
+    parent = -10;
 }
 
 QuadTreeLeaf::QuadTreeLeaf(leafdepth d, treeindex p)
 {
     depth = d;
     parent = p;
+    first_child = -10;
 }

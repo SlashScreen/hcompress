@@ -1,10 +1,30 @@
 #pragma once
+#include "aabb.hpp"
 #include "hcompress.hpp"
 
 namespace HCompressor
 {
     typedef unsigned short treeindex; // A short should cover all planned resolutions.
     typedef unsigned char leafdepth;
+
+    enum Quadrant
+    {
+        BL,
+        TL,
+        TR,
+        BR,
+    };
+
+    struct QuadTreeLeaf
+    {
+    public:
+        treeindex
+            parent,
+            first_child;
+        leafdepth depth;
+        QuadTreeLeaf();
+        QuadTreeLeaf(leafdepth d, treeindex p);
+    };
 
     class QuadTree
     {
@@ -19,24 +39,5 @@ namespace HCompressor
         QuadTree();
         void subdivide(treeindex i);
         QuadTreeLeaf *top();
-    };
-
-    struct QuadTreeLeaf
-    {
-    public:
-        treeindex
-            parent,
-            first_child;
-        leafdepth depth;
-        QuadTreeLeaf();
-        QuadTreeLeaf(leafdepth d, treeindex p);
-    };
-
-    enum Quadrant
-    {
-        BL,
-        TL,
-        TR,
-        BR,
     };
 }
