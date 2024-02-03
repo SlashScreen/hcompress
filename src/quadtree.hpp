@@ -1,6 +1,6 @@
 #pragma once
 #include "aabb.hpp"
-#include "hcompress.hpp"
+#include "constants.hpp"
 
 /*
 This is a bespoke, heavily pared down implementation of a "Quadtree".
