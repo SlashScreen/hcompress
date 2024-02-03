@@ -1,3 +1,4 @@
+#pragma once
 #include "aabb.hpp"
 #include "quadtree.hpp"
 

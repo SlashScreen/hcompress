@@ -1,3 +1,4 @@
+#pragma once
 namespace HCompressor
 {
     struct AABB

@@ -1,9 +1,10 @@
+#pragma once
 #include "hcompress.hpp"
 
 namespace HCompressor
 {
-    typedef treeindex unsigned short;
-    typedef leafdepth unsigned char;
+    typedef unsigned short treeindex; // A short should cover all planned resolutions.
+    typedef unsigned char leafdepth;
 
     class QuadTree
     {
