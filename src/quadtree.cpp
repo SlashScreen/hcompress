@@ -3,6 +3,8 @@ using namespace HCompressor;
 
 //* TREE
 
+// Private
+
 void QuadTree::add_new_quad(leafdepth d, treeindex p)
 {
     QuadTreeLeaf leaf = QuadTreeLeaf(d, p);
@@ -19,6 +21,8 @@ Quadrant QuadTree::get_order(treeindex i)
 {
     QuadTreeLeaf *c = get(i);
     QuadTreeLeaf *p = get(c->parent);
+    // Measure distance between first child index and this leaf's index.
+    // The child order goes BL -> TL -> TR -> BR.
     switch (i - p->first_child)
     {
     case 0:
@@ -30,13 +34,13 @@ Quadrant QuadTree::get_order(treeindex i)
     case 3:
         return Quadrant::BR;
     default:
-        return Quadrant::BR;
+        return Quadrant::BR; // This should never happen.
     }
 }
 
 AABB QuadTree::get_aabb_for(treeindex i)
 {
-    // If depth is 0, it's root
+    // If depth is 0, it's root, get full range
     QuadTreeLeaf *q = get(i);
     if (q->depth == 0)
     {
@@ -47,10 +51,10 @@ AABB QuadTree::get_aabb_for(treeindex i)
     AABB p_aabb = get_aabb_for(q->parent); // Is recursive
     int x = p_aabb.bottom_left_x;
     int y = p_aabb.bottom_left_y;
-    int w = p_aabb.width >> 1;
+    int w = p_aabb.width >> 1; // Divides by 2.
     int h = p_aabb.height >> 1;
 
-    // Construct AABBs
+    // Construct AABBs based on their quadrant.
     switch (get_order(i))
     {
     case Quadrant::BL:
@@ -62,9 +66,11 @@ AABB QuadTree::get_aabb_for(treeindex i)
     case Quadrant::BR:
         return AABB(x + w, y, w, h);
     default:
-        return AABB(0, 0, MAP_DIMENSIONS, MAP_DIMENSIONS);
+        return AABB(0, 0, MAP_DIMENSIONS, MAP_DIMENSIONS); // This should never happen.
     }
 }
+
+// Public
 
 QuadTree::QuadTree()
 {
@@ -74,7 +80,7 @@ QuadTree::QuadTree()
 void QuadTree::subdivide(treeindex i)
 {
     QuadTreeLeaf *q = get(i);
-    q->first_child = index;
+    q->first_child = index; // Mark first child index for the subdividing quad.
 
     for (int i = 0; i < LEAVES; i++)
     {
@@ -89,14 +95,16 @@ QuadTreeLeaf *QuadTree::top()
 
 //* LEAF
 
+// Public
+
 QuadTreeLeaf::QuadTreeLeaf()
 {
-    parent = -10;
+    parent = -1;
 }
 
 QuadTreeLeaf::QuadTreeLeaf(leafdepth d, treeindex p)
 {
     depth = d;
     parent = p;
-    first_child = -10;
+    first_child = -1;
 }

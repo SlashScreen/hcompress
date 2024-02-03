@@ -2,6 +2,7 @@
 
 namespace HCompressor
 {
+    // This simple AABB is not used for collision, but rather to mark a region of an image.
     struct AABB
     {
         int

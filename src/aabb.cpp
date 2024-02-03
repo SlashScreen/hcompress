@@ -1,6 +1,10 @@
 #include "aabb.hpp"
 using namespace HCompressor;
 
+//* AABB
+
+// Public
+
 AABB::AABB(int x, int y, int w, int h)
 {
     bottom_left_x = x;
