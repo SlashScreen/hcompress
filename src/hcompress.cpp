@@ -40,6 +40,7 @@ float **Compressor::grab_span(float ***data, AABB *aabb)
     return arr;
 }
 
+// Planar regress data.
 void Compressor::regress(float ***data, float *a, float *xfac, float *yfac, int dimension)
 {
     // Implementation of: https://www.freecodecamp.org/news/the-least-squares-regression-method-explained/
@@ -89,6 +90,20 @@ void Compressor::regress(float ***data, float *a, float *xfac, float *yfac, int 
 
         *a = sum[_z] - ((*xfac * sum[_x]) + (*yfac * sum[_y]));
     }
+}
+
+// Get relative values of a span to plane.
+float **Compressor::adjust_span(float **data, float a, float xfac, float yfac, int dimension)
+{
+    float **arr = new float *[dimension];
+    for (size_t x = 0; x < dimension; x++)
+    {
+        for (size_t y = 0; y < dimension; y++)
+        {
+            arr[x][y] = data[x][y] - (a + (xfac * x) + (yfac * y));
+        }
+    }
+    return arr;
 }
 
 // public
