@@ -49,3 +49,7 @@ void Compressor::regress(float ***data, float *a, float *xfac, float *yfac)
 void Compressor::process_maps(TypedArray<Image> imgs)
 {
 }
+
+// protected
+
+void Compressor::_bind_methods() {}
