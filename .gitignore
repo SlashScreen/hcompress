@@ -1,4 +1,8 @@
 /.vscode
 *.obj
-/demo
+/demo/.godot
+/demo/bin/*.dll
+/demo/bin/*.exp
+/demo/bin/*.lib
+/demo/bin/*.so
 *.dblite

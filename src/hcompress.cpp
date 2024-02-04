@@ -50,6 +50,24 @@ void Compressor::process_maps(TypedArray<Image> imgs)
 {
 }
 
+PackedFloat32Array Compressor::test_process_image(Image *img)
+{
+    float **d = read_image(img);
+    PackedFloat32Array arr = PackedFloat32Array();
+    for (size_t x = 0; x < img->get_width(); x++)
+    {
+        for (size_t y = 0; y < img->get_height(); y++)
+        {
+            arr.push_back(d[x][y]);
+        }
+    }
+    std::free(d);
+    return arr;
+}
+
 // protected
 
-void Compressor::_bind_methods() {}
+void Compressor::_bind_methods()
+{
+    ClassDB::bind_method(D_METHOD("test_process_image", "image"), &Compressor::test_process_image);
+}

@@ -1,0 +1,2 @@
+build:
+	scons platform=windows
