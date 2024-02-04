@@ -36,8 +36,9 @@ namespace HCompressor
     // A Quadtree is a container for leaves.
     class QuadTree
     {
-        QuadTreeLeaf leaves[RESERVE_SIZE]; // Pre-allocated array of leaves.
-        treeindex index;                   // Functions a bit like a stack pointer; This is used to emulate a growing list.
+        QuadTreeLeaf *leaves; // Pre-allocated array of leaves.
+        treeindex index;      // Functions a bit like a stack pointer; This is used to emulate a growing list.
+        int map_size;
 
         void add_new_quad(leafdepth d, treeindex p = 0);
         QuadTreeLeaf *get(treeindex i);
@@ -46,6 +47,8 @@ namespace HCompressor
 
     public:
         QuadTree();
+        QuadTree(int terrain_size);
+        ~QuadTree();
         void subdivide(treeindex i);
         QuadTreeLeaf *top();
     };

@@ -1,4 +1,5 @@
 #include "quadtree.hpp"
+#include <cstdlib>
 using namespace HCompressor;
 
 //* TREE
@@ -44,7 +45,7 @@ AABB QuadTree::get_aabb_for(treeindex i)
     QuadTreeLeaf *q = get(i);
     if (q->depth == 0)
     {
-        return AABB(0, 0, MAP_DIMENSIONS, MAP_DIMENSIONS);
+        return AABB(0, 0, map_size, map_size);
     }
 
     // Calculate new AABB values
@@ -66,7 +67,7 @@ AABB QuadTree::get_aabb_for(treeindex i)
     case Quadrant::BR:
         return AABB(x + w, y, w, h);
     default:
-        return AABB(0, 0, MAP_DIMENSIONS, MAP_DIMENSIONS); // This should never happen.
+        return AABB(0, 0, map_size, map_size); // This should never happen.
     }
 }
 
@@ -74,7 +75,44 @@ AABB QuadTree::get_aabb_for(treeindex i)
 
 QuadTree::QuadTree()
 {
+    leaves = new QuadTreeLeaf[0xFF];
+}
+
+QuadTree::QuadTree(int terrain_size)
+{
+    map_size = terrain_size;
+    /*
+        Find the number of times the quadtree must be subdivided to reach a minimum chunk size.
+        The mathy way to do this, assuming map size is 1024 and chunk size is 16, is:
+        1. 1024 / 16 = 64 (Max would be having 64x64 quads)
+        2. log_base(2, 64) = 6 (Must divide 6 times to reach 64)
+
+        Instead of doing that however, we will do a much more computery version: bit shifting!
+        The old version used a lot of float casts and math.
+        Don't worry, I tested this algorithm in Go first and this worked well.
+    */
+    int x = terrain_size;
+    int depth_to_fit = 0;
+
+    while (x != CHUNK_SIZE)
+    {
+        // Basically we are just counting how many shifts (equivalent to subdivisions) is between
+        // the terrain size and the chunk size.
+        x >>= 1;
+        depth_to_fit++;
+    }
+
+    int new_size = (1 << ((depth_to_fit * 2) - 1)) - 1;
+    // Simplified form of summing powers of 2, down from depth_to_fit. ex. 2^4 + 2^3 + ... + 2^0
+    // This reasonably assumes all terrain sizes are powers of 2.
+
+    leaves = new QuadTreeLeaf[new_size];
     add_new_quad(0);
+}
+
+QuadTree::~QuadTree()
+{
+    std::free(leaves);
 }
 
 void QuadTree::subdivide(treeindex i)

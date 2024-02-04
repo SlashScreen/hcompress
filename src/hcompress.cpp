@@ -39,6 +39,11 @@ float **Compressor::grab_span(float ***data, AABB *aabb)
     return arr;
 }
 
+void Compressor::regress(float ***data, float *a, float *xfac, float *yfac)
+{
+    float sum = 0.0;
+}
+
 // public
 
 void Compressor::process_maps(TypedArray<Image> imgs)
