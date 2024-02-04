@@ -23,7 +23,7 @@ float **Compressor::read_image(Image *img)
     return arr;
 }
 
-float **Compressor::grab_span(float ***data, AABB *aabb)
+float **Compressor::grab_span(float **data, AABB *aabb)
 {
     float **arr = new float *[aabb->width];
 
@@ -33,7 +33,7 @@ float **Compressor::grab_span(float ***data, AABB *aabb)
 
         for (size_t y = 0; y < aabb->height; y++)
         {
-            arr[x][y] = *data[x][y]; // simply copying the data is I Think less bytes than using pointers
+            arr[x][y] = data[x][y]; // simply copying the data is I Think less bytes than using pointers
         }
     }
 
@@ -41,7 +41,7 @@ float **Compressor::grab_span(float ***data, AABB *aabb)
 }
 
 // Planar regress data.
-void Compressor::regress(float ***data, float *a, float *xfac, float *yfac, int dimension)
+void Compressor::regress(float **data, float *a, float *xfac, float *yfac, int dimension)
 {
     // Implementation of: https://www.freecodecamp.org/news/the-least-squares-regression-method-explained/
 
@@ -60,7 +60,7 @@ void Compressor::regress(float ***data, float *a, float *xfac, float *yfac, int 
         {
             for (size_t y = 0; y < dimension; y++)
             {
-                sum[_z] += *data[x][y];
+                sum[_z] += data[x][y];
             }
         }
 
@@ -78,7 +78,7 @@ void Compressor::regress(float ***data, float *a, float *xfac, float *yfac, int 
             sigma[_xx] += std::pow(x - sum[_x], 2);
             for (size_t y = 0; y < dimension; y++)
             {
-                float z = *data[x][y];
+                float z = data[x][y];
                 sigma[_yy] += std::pow(y - sum[_y], 2);
                 sigma[_xz] += (x - sum[_x]) * (z - sum[_z]);
                 sigma[_yz] += (y - sum[_y]) * (z - sum[_z]);
@@ -106,10 +106,35 @@ float **Compressor::adjust_span(float **data, float a, float xfac, float yfac, i
     return arr;
 }
 
+PackedByteArray Compressor::process_quad(float **data, QuadTree *qt, int index, int dimension)
+{
+    PackedByteArray output = PackedByteArray();
+
+    float **span = grab_span(data, &(qt->get_aabb_for(index)));
+    float a;
+    float xfac;
+    float yfac;
+    regress(span, &a, &xfac, &yfac, dimension);
+    float **adjusted = adjust_span(span, a, xfac, yfac, dimension);
+
+    /*
+    TODO:
+    - Determine compression method
+    - Make header, depth, etc
+    - Compress floats (or do flat)
+    - Append to byte array
+    */
+
+    std::free(span);
+    std::free(adjusted);
+    return output;
+}
+
 // public
 
-void Compressor::process_maps(TypedArray<Image> imgs)
+godot::PackedByteArray Compressor::compress_images(TypedArray<Image> *imgs)
 {
+    return PackedByteArray();
 }
 
 PackedFloat32Array Compressor::test_process_image(Image *img)

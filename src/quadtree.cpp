@@ -39,38 +39,6 @@ Quadrant QuadTree::get_order(treeindex i)
     }
 }
 
-AABB QuadTree::get_aabb_for(treeindex i)
-{
-    // If depth is 0, it's root, get full range
-    QuadTreeLeaf *q = get(i);
-    if (q->depth == 0)
-    {
-        return AABB(0, 0, map_size, map_size);
-    }
-
-    // Calculate new AABB values
-    AABB p_aabb = get_aabb_for(q->parent); // Is recursive
-    int x = p_aabb.bottom_left_x;
-    int y = p_aabb.bottom_left_y;
-    int w = p_aabb.width >> 1; // Divides by 2.
-    int h = p_aabb.height >> 1;
-
-    // Construct AABBs based on their quadrant.
-    switch (get_order(i))
-    {
-    case Quadrant::BL:
-        return AABB(x, y, w, h);
-    case Quadrant::TL:
-        return AABB(x, y + h, w, h);
-    case Quadrant::TR:
-        return AABB(x + w, y + h, w, h);
-    case Quadrant::BR:
-        return AABB(x + w, y, w, h);
-    default:
-        return AABB(0, 0, map_size, map_size); // This should never happen.
-    }
-}
-
 // Public
 
 QuadTree::QuadTree()
@@ -129,6 +97,38 @@ void QuadTree::subdivide(treeindex i)
 QuadTreeLeaf *QuadTree::top()
 {
     return &leaves[index - 1];
+}
+
+AABB QuadTree::get_aabb_for(treeindex i)
+{
+    // If depth is 0, it's root, get full range
+    QuadTreeLeaf *q = get(i);
+    if (q->depth == 0)
+    {
+        return AABB(0, 0, map_size, map_size);
+    }
+
+    // Calculate new AABB values
+    AABB p_aabb = get_aabb_for(q->parent); // Is recursive
+    int x = p_aabb.bottom_left_x;
+    int y = p_aabb.bottom_left_y;
+    int w = p_aabb.width >> 1; // Divides by 2.
+    int h = p_aabb.height >> 1;
+
+    // Construct AABBs based on their quadrant.
+    switch (get_order(i))
+    {
+    case Quadrant::BL:
+        return AABB(x, y, w, h);
+    case Quadrant::TL:
+        return AABB(x, y + h, w, h);
+    case Quadrant::TR:
+        return AABB(x + w, y + h, w, h);
+    case Quadrant::BR:
+        return AABB(x + w, y, w, h);
+    default:
+        return AABB(0, 0, map_size, map_size); // This should never happen.
+    }
 }
 
 //* LEAF
