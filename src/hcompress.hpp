@@ -14,7 +14,7 @@ namespace HCompressor
 
         float **read_image(godot::Image *img); // Get heightmap array from image
         float **grab_span(float ***data, AABB *aabb);
-        void regress(float ***data, float *a, float *xfac, float *yfac);
+        void regress(float ***data, float *a, float *xfac, float *yfac, int dimension); // Planar regress data.
 
     public:
         void process_maps(godot::TypedArray<godot::Image> imgs);

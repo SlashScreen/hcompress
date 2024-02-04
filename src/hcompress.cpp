@@ -1,4 +1,5 @@
 #include "hcompress.hpp"
+#include <cmath>
 
 using namespace HCompressor;
 using namespace godot;
@@ -39,9 +40,55 @@ float **Compressor::grab_span(float ***data, AABB *aabb)
     return arr;
 }
 
-void Compressor::regress(float ***data, float *a, float *xfac, float *yfac)
+void Compressor::regress(float ***data, float *a, float *xfac, float *yfac, int dimension)
 {
-    float sum = 0.0;
+    // Implementation of: https://www.freecodecamp.org/news/the-least-squares-regression-method-explained/
+
+    // Step 1: gather sums
+    const int _x = 0;
+    const int _y = 1;
+    const int _z = 2;
+
+    float sum[3];
+    // Step 1
+    {
+        sum[_x] = (float)(dimension / 2);
+        sum[_y] = (float)(dimension / 2);
+
+        for (size_t x = 0; x < dimension; x++)
+        {
+            for (size_t y = 0; y < dimension; y++)
+            {
+                sum[_z] += *data[x][y];
+            }
+        }
+
+        sum[_z] /= (float)(dimension * dimension);
+    }
+    // Step 2
+    const int _xx = 0;
+    const int _yy = 1;
+    const int _xz = 2;
+    const int _yz = 3;
+    float sigma[4];
+    {
+        for (size_t x = 0; x < dimension; x++)
+        {
+            sigma[_xx] += std::pow(x - sum[_x], 2);
+            for (size_t y = 0; y < dimension; y++)
+            {
+                float z = *data[x][y];
+                sigma[_yy] += std::pow(y - sum[_y], 2);
+                sigma[_xz] += (x - sum[_x]) * (z - sum[_z]);
+                sigma[_yz] += (y - sum[_y]) * (z - sum[_z]);
+            }
+        }
+
+        *xfac = sigma[_xz] / sigma[_xx];
+        *yfac = sigma[_yz] / sigma[_yy];
+
+        *a = sum[_z] - ((*xfac * sum[_x]) + (*yfac * sum[_y]));
+    }
 }
 
 // public
