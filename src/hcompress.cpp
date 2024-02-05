@@ -274,7 +274,7 @@ TypedArray<PackedByteArray> Compressor::compress_images(TypedArray<Image> imgs)
         arr.append(compress_image(img));
     }
 
-    return;
+    return arr;
 }
 
 PackedFloat32Array Compressor::test_process_image(Ref<Image> img)
