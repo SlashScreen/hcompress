@@ -13,11 +13,6 @@ void QuadTree::add_new_quad(leafdepth d, treeindex p)
     index++;
 }
 
-QuadTreeLeaf *QuadTree::get(treeindex i)
-{
-    return &leaves[i];
-}
-
 Quadrant QuadTree::get_order(treeindex i)
 {
     QuadTreeLeaf *c = get(i);
@@ -129,6 +124,55 @@ AABB QuadTree::get_aabb_for(treeindex i)
     default:
         return AABB(0, 0, map_size, map_size); // This should never happen.
     }
+}
+
+QuadTreeLeaf *QuadTree::get(treeindex i)
+{
+    return &leaves[i];
+}
+
+treeindex QuadTree::lowest_quad_under(int x, int y, int i = 0)
+{
+    QuadTreeLeaf *leaf = get(i);
+    // If no children, this is lowest
+    if (leaf->first_child == -1)
+    {
+        return i;
+    }
+
+    // Is there a way to do this without getting AABB?
+    AABB p_aabb = get_aabb_for(i);
+    int ax = p_aabb.bottom_left_x;
+    int ay = p_aabb.bottom_left_y;
+    int w = p_aabb.width >> 1; // Divides by 2.
+    int h = p_aabb.height >> 1;
+
+    // Find quadrant
+    Quadrant q;
+    if ((x >= ax && x <= ax + w) && (y >= ay && y <= ay + h))
+    {
+        q = Quadrant::BL;
+    }
+    else if ((x >= ax && x <= ax + w) && (y >= ay + h && y <= ay + p_aabb.height))
+    {
+        q = Quadrant::TL;
+    }
+    else if ((x >= ax + w && x <= ax + p_aabb.width) && (y >= ay + h && y <= ay + p_aabb.height))
+    {
+        q = Quadrant::TR;
+    }
+    else
+    {
+        q = Quadrant::BR;
+    }
+
+    // Recurse for the child underneath the quad
+    return lowest_quad_under(x, y, leaf->first_child + q);
+}
+
+treeindex QuadTree::size()
+{
+    return index;
 }
 
 //* LEAF

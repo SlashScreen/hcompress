@@ -4,7 +4,7 @@
 using namespace HCompressor;
 using namespace godot;
 
-float **Compressor::read_image(Image *img)
+float **Compressor::read_image(Ref<Image> img)
 {
     int w = img->get_width();
     int h = img->get_height();
@@ -231,14 +231,53 @@ PackedByteArray Compressor::float_to_bytes(float f)
     return arr;
 }
 
-// public
-
-godot::PackedByteArray Compressor::compress_images(TypedArray<Image> *imgs)
+PackedByteArray Compressor::compress_image(Ref<Image> img)
 {
-    return PackedByteArray();
+    float **height_data = read_image(img);
+    float min, max;
+    QuadTree qt = QuadTree(img->get_width());
+
+    for (size_t x = 0; x < img->get_width(); x++)
+    {
+        for (size_t y = 0; y < img->get_height(); y++)
+        {
+            // Subdivide if min and max is too high
+            float h = height_data[x][y];
+            min = std::min(min, h);
+            max = std::max(max, h);
+            if (max - min > SUBDIVIDE_THRESHOLD)
+            {
+                qt.subdivide(qt.lowest_quad_under(x, y));
+                min, max = 0;
+            }
+        }
+    }
+
+    PackedByteArray arr = PackedByteArray();
+    for (size_t i = 0; i < qt.size(); i++)
+    {
+        arr.append_array(process_quad(height_data, &qt, i, img->get_width()));
+    }
+
+    std::free(height_data);
+    return arr.compress();
 }
 
-PackedFloat32Array Compressor::test_process_image(Image *img)
+// public
+
+TypedArray<PackedByteArray> Compressor::compress_images(TypedArray<Image> imgs)
+{
+    TypedArray<PackedByteArray> arr = TypedArray<PackedByteArray>();
+    for (size_t i = 0; i < imgs.size(); i++)
+    {
+        Ref<Image> img = imgs[i];
+        arr.append(compress_image(img));
+    }
+
+    return;
+}
+
+PackedFloat32Array Compressor::test_process_image(Ref<Image> img)
 {
     float **d = read_image(img);
     PackedFloat32Array arr = PackedFloat32Array();

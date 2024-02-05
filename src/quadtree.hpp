@@ -51,5 +51,7 @@ namespace HCompressor
         QuadTreeLeaf *top();
         AABB get_aabb_for(treeindex i);
         QuadTreeLeaf *get(treeindex i);
+        treeindex lowest_quad_under(int x, int y, int i = 0);
+        treeindex size();
     };
 }
