@@ -10,8 +10,18 @@
 
 namespace HCompressor
 {
+    enum EncodeType
+    {
+        Flat,
+        U2,
+        U4,
+        U8,
+        Full,
+    };
+
     class Compressor : public godot::Object
     {
+
         GDCLASS(Compressor, Object)
 
         float **read_image(godot::Image *img); // Get heightmap array from image
@@ -19,6 +29,7 @@ namespace HCompressor
         void regress(float **data, float *a, float *xfac, float *yfac, int dimension);
         float **adjust_span(float **data, float a, float xfac, float yfac, int dimension);
         godot::PackedByteArray process_quad(float **data, QuadTree *qt, int index, int dimension);
+        godot::PackedByteArray float_to_bytes(float f);
 
     public:
         godot::PackedByteArray compress_images(godot::TypedArray<godot::Image> *imgs);

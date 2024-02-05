@@ -41,7 +41,6 @@ namespace HCompressor
         int map_size;
 
         void add_new_quad(leafdepth d, treeindex p = 0);
-        QuadTreeLeaf *get(treeindex i);
         Quadrant get_order(treeindex i);
 
     public:
@@ -51,5 +50,6 @@ namespace HCompressor
         void subdivide(treeindex i);
         QuadTreeLeaf *top();
         AABB get_aabb_for(treeindex i);
+        QuadTreeLeaf *get(treeindex i);
     };
 }

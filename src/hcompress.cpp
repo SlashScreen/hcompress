@@ -110,24 +110,125 @@ PackedByteArray Compressor::process_quad(float **data, QuadTree *qt, int index, 
 {
     PackedByteArray output = PackedByteArray();
 
-    float **span = grab_span(data, &(qt->get_aabb_for(index)));
+    AABB span_box = qt->get_aabb_for(index);
+    float **span = grab_span(data, &span_box);
     float a;
     float xfac;
     float yfac;
     regress(span, &a, &xfac, &yfac, dimension);
     float **adjusted = adjust_span(span, a, xfac, yfac, dimension);
+    // Determine value range
+    float min = 0.0;
+    float max = 0.0;
+    for (size_t x = 0; x < dimension; x++)
+    {
+        for (size_t y = 0; y < dimension; y++)
+        {
+            min = std::min(min, adjusted[x][y]);
+            max = std::min(max, adjusted[x][y]);
+        }
+    }
+    float diff = max - min;
+    output.append(QUAD_HEADER);
+    output.append(qt->get(index)->depth); // Depth will determine dimensions for reading, so we don't need to store it
+    // Store plane
+    output.append_array(float_to_bytes(a));
+    output.append_array(float_to_bytes(xfac));
+    output.append_array(float_to_bytes(yfac));
 
-    /*
-    TODO:
-    - Determine compression method
-    - Make header, depth, etc
-    - Compress floats (or do flat)
-    - Append to byte array
-    */
+    if (diff < FLAT_TRESHOLD)
+    {
+        output.append(EncodeType::Flat);
+        // We don't need to include any more data.
+    }
+    else if (diff < U2_THRESHOLD)
+    {
+        output.append(EncodeType::U2);
+        /*
+            Here we loop through the array, take out chunks of 4 height values, and then squish them into a single byte.
+            We have centimeter precision here, so this is only if the maximum variance in the terrain is 0.3.
+            Assuming this, we store each height as an index into the range 0.00 - 0.04, with a step of 0.1.
+        */
+        for (size_t x = 0; x < dimension; x++) // Each row
+        {
+            for (size_t i = 0; i < dimension; i += 4) // each byte
+            {
+                unsigned char new_byte = 0;
+                for (size_t b = 0; b < 4; b++) // each float
+                {
+                    float val = data[x][i + b] - min; // relative offset from minimum
+                    int place = (int)(val * 100);     // whether it's index 0, 1, 2, 3
+                    new_byte |= place << (b * 2);     // place in 1 - 3, offset by position in byte, * 2 for U2
+                    // It will be placed into the byte in the order 3210, but that won't matter if it's read in the same order
+                }
+                output.append(new_byte);
+            }
+        }
+    }
+    else if (diff < U4_THRESHOLD)
+    {
+        output.append(EncodeType::U4);
+        // This is the same process as U2, but packing 2 floats into a byte, with a range of 0.0 - 0.15.
+        for (size_t x = 0; x < dimension; x++) // Each row
+        {
+            for (size_t i = 0; i < dimension; i += 2) // each byte
+            {
+                unsigned char new_byte = 0;
+                for (size_t b = 0; b < 2; b++) // each float
+                {
+                    float val = data[x][i + b] - min; // relative offset from minimum
+                    int place = (int)(val * 100);     // index
+                    new_byte |= place << (b * 4);     // place in 1 - 3, offset by position in byte, * 2 for U2
+                    // It will be placed into the byte in the order 3210, but that won't matter if it's read in the same order
+                }
+                output.append(new_byte);
+            }
+        }
+    }
+    else if (diff < U8_THRESHOLD)
+    {
+        output.append(EncodeType::U8);
+        // This is a similar idea as U4, but no byte chunks.
+        for (size_t x = 0; x < dimension; x++) // Each row
+        {
+            for (size_t y = 0; y < dimension; y++) // each byte
+            {
+                float val = data[x][y] - min;                        // relative offset from minimum
+                unsigned char new_byte = (unsigned char)(val * 100); // index
+                output.append(new_byte);
+            }
+        }
+    }
+    else
+    {
+        output.append(EncodeType::Full);
+        // Worst case scenario. Store all f32s.
+        for (size_t x = 0; x < dimension; x++) // Each row
+        {
+            for (size_t y = 0; y < dimension; y++) // each byte
+            {
+                output.append_array(float_to_bytes(data[x][y]));
+            }
+        }
+    }
 
     std::free(span);
     std::free(adjusted);
     return output;
+}
+
+PackedByteArray Compressor::float_to_bytes(float f)
+{
+    unsigned char *p = reinterpret_cast<unsigned char *>(&f);
+    PackedByteArray arr = PackedByteArray();
+
+    for (size_t i = 0; i < sizeof(float); i++)
+    {
+        arr.append(p[i]);
+    }
+    std::free(p);
+
+    return arr;
 }
 
 // public
