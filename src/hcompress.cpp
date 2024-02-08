@@ -236,7 +236,11 @@ PackedByteArray Compressor::compress_image(Ref<Image> img)
     float **height_data = read_image(img);
     float min, max;
     QuadTree qt = QuadTree(img->get_width());
-
+    /*
+        The MTerrain algorithm actually fully subdivides first and then un-subdivides to find the best compression for the area.
+        My implementation does not do this, because my half-featured quadtree implementation doesn't support it.
+        I *could* create a sort of switchback array or whatever it's called, but I don't feel like doing that.
+    */
     for (size_t x = 0; x < img->get_width(); x++)
     {
         for (size_t y = 0; y < img->get_height(); y++)
@@ -297,4 +301,5 @@ PackedFloat32Array Compressor::test_process_image(Ref<Image> img)
 void Compressor::_bind_methods()
 {
     ClassDB::bind_method(D_METHOD("test_process_image", "image"), &Compressor::test_process_image);
+    ClassDB::bind_method(D_METHOD("compress_images", "heightmaps"), &Compressor::compress_images);
 }

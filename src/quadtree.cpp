@@ -131,7 +131,7 @@ QuadTreeLeaf *QuadTree::get(treeindex i)
     return &leaves[i];
 }
 
-treeindex QuadTree::lowest_quad_under(int x, int y, int i = 0)
+treeindex QuadTree::lowest_quad_under(int x, int y, int i)
 {
     QuadTreeLeaf *leaf = get(i);
     // If no children, this is lowest
